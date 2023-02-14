@@ -1,7 +1,9 @@
+//Getting access to the Dom where the articles are getting posted
 const cartProducts = document.getElementById('cart__items');
 const totalQuantity = document.getElementById('totalQuantity');
 const totalPrice = document.getElementById('totalPrice');
 
+//Api's request for the articles
 function getArticles() {
     return new Promise((resolve, reject) => {
         let request = new XMLHttpRequest();
@@ -24,17 +26,18 @@ function getArticles() {
     )
     }
 
-    async function displayArticles() {
-        try {
-        const displayedProducts = await getArticles();
-        console.table(displayedProducts);
-        // Call the cart
+//Posting all the cart's articles in the DOM adding all the functionality to change quantity and delete
+async function displayArticles() {
+   try {
+       const displayedProducts = await getArticles();
+       console.table(displayedProducts);
+        // Call the cart from the localStorage
         let cart = JSON.parse(localStorage.getItem('cart'))
         if (cart == null) {
             console.log('cart is empty')
         } else {
-        //posting loop
         console.table(cart);
+
         let cartTotalQuantity = 0;
         let cartTotalPrice = 0;
 
@@ -118,6 +121,7 @@ function getArticles() {
               product.quantity = parseInt($event.target.value);
               console.log(cart);
               localStorage.setItem('cart', JSON.stringify(cart));
+              //funzione ricalcolo da scrivere
               let cartTotalQuantity = 0;
               let cartTotalPrice = 0;
               for (let product of cart) {
@@ -138,8 +142,39 @@ function getArticles() {
               }
 
 
+            });
+         // delete artcle
+            cartArticleDelete.addEventListener('click', ($event) => {
+            $event.preventDefault();
+            let index = cart.indexOf(product);
+            let deletedProduct = cart.splice(index, 1);
+            // console.log(cart);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            cartArticle.remove();
+            // recalculate quantity and price
+            let cartTotalQuantity = 0;
+            let cartTotalPrice = 0;
+            for (let product of cart) {
+              let productRecover = displayedProducts.find((el) => el._id === product.id);
+                 let article = {
+                  name: productRecover.name,
+                  color: product.color,
+                  id: product.id,
+                  image: productRecover.imageUrl,
+                  altText: productRecover.imageUrl,
+                  quantity: product.quantity,
+                  price: product.quantity * productRecover.price
+                 };
+                 console.log(product);
+              cartTotalQuantity += product.quantity;
+              cartTotalPrice += article.price;
+               }
+               totalQuantity.textContent = cartTotalQuantity;
+               totalPrice.textContent = cartTotalPrice;
+
             })
-           
+         
+
 
 
 
@@ -160,3 +195,80 @@ function getArticles() {
     }
 
     displayArticles();
+
+   // ORDER
+
+   let emailRegExp = new RegExp('^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$');
+   let charRegExp = new RegExp("^[a-zA-Z ,.'-]+$");
+   let addressRegExp = new RegExp("^[0-9]{1,3}(?:(?:[,. ]){1}[-a-zA-Zàâäéèêëïîôöùûüç]+)+");
+
+   let firstName = document.getElementById('firstName');
+   const lastName = document.getElementById('lastName');
+   const address = document.getElementById('address');
+   const city = document.getElementById('city');
+   const email = document.getElementById('email');
+   const order = document.getElementById('order');
+   let formInputs = [firstName, lastName, address, city, email];
+
+   // function inputValidation() {
+   //    if (formInput === email) {
+   //       if (emailRegExp.test(formInput.value)) {
+   //           formInput.nextElementSibling.textContent = ''
+   //       } else {
+   //          formInput.nextElementSibling.textContent = 'Email is not valid';
+   //       }
+   //     }
+   //     else if (formInput === address) {
+   //       if (addressRegExp.test(formInput.value)) {
+   //           formInput.nextElementSibling.textContent = ''
+   //       } else {
+   //          formInput.nextElementSibling.textContent = 'Address is not valid';
+   //       }
+   //     } else {
+   //          if (charRegExp.test(formInput.value)) {
+   //              formInput.nextElementSibling.textContent = ''
+   //          } else {
+   //             formInput.nextElementSibling.textContent = 'This field is not valid';
+   //          }
+   //        }
+   // }
+
+   for (let formInput of formInputs) {
+   formInput.addEventListener('change', ($event) => {
+    if (formInput === email) {
+      if (emailRegExp.test(formInput.value)) {
+          formInput.nextElementSibling.textContent = ''
+      } else {
+         formInput.nextElementSibling.textContent = 'Email is not valid';
+      }
+    }
+    else if (formInput === address) {
+      if (addressRegExp.test(formInput.value)) {
+          formInput.nextElementSibling.textContent = ''
+      } else {
+         formInput.nextElementSibling.textContent = 'Address is not valid';
+      }
+    } else {
+         if (charRegExp.test(formInput.value)) {
+             formInput.nextElementSibling.textContent = ''
+         } else {
+            formInput.nextElementSibling.textContent = 'This field is not valid';
+         }
+       }
+    }
+   )
+   }
+
+   
+   
+   order.addEventListener('click', ($event) => {
+      $event.preventDefault();
+     let inputUnvalid = formInputs.find((el) => el.nextElementSibling.textContent !== '');
+     if (inputUnvalid) {
+      console.log(inputUnvalid);
+      inputUnvalid.scrollIntoView({block: "center"});
+     } else {
+      console.log('procedi oridne');
+     }
+   })
+

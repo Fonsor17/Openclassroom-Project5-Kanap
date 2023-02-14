@@ -1,6 +1,10 @@
+// Product's ID extraction from the URL
 const urlSearch = window.location.search;
 const urlParams = new URLSearchParams(urlSearch);
 const productId = urlParams.get('id');
+// Counter for the quanity of produts in the cart
+cartCounter();
+// Constants to get the access to the DOM
 const productDivImg = document.querySelector('.item__img');
 const productName = document.getElementById('title');
 const productPrice = document.getElementById('price');
@@ -9,11 +13,8 @@ const productQuantity = document.getElementById('quantity');
 const colorSelect = document.getElementById('colors');
 const addToCartBtn = document.getElementById('addToCart');
 
-console.log(productId);
-
-// Article's request from API
-
-function getArticle() {
+// Api's request for the single product
+function getProduct() {
     return new Promise((resolve, reject) => {
         let request = new XMLHttpRequest();
         request.open('GET', "http://localhost:3000/api/products/" + productId);
@@ -35,26 +36,25 @@ function getArticle() {
     )
     };
 
-    // Allocation of API article's data in the DOM
-
-    async function displayArticle() {
+// Allocation of API product's data in the DOM
+async function displayProduct() {
     try {
-    const displayedProduct = await getArticle();
+    const displayedProduct = await getProduct();
     console.log(displayedProduct);
     // Image Posting
     let productImg = document.createElement('img');
     productImg.src = displayedProduct.imageUrl;
     productImg.alt = displayedProduct.altTxt;
     productDivImg.appendChild(productImg);
-    //Name Posting
+    // Name Posting
     productName.textContent = displayedProduct.name;
     // Price Posting
     productPrice.textContent = displayedProduct.price * productQuantity.value;
-    //Price updating when quantity change
+    // Price updating when quantity change
     productQuantity.addEventListener('change', ($event) => {
         productPrice.textContent = displayedProduct.price * $event.target.value;
     });
-    //Description Posting
+    // Description Posting
     productDescription.textContent = displayedProduct.description;
     // Colors Posting
     displayedProduct.colors.forEach(color => {
@@ -62,31 +62,34 @@ function getArticle() {
         colorOption.textContent = color;
         colorSelect.appendChild(colorOption);        
     });
-    //EVENT
+    // Button to add to the Cart
     addToCartBtn.addEventListener('click', ($event) => {
+        if (parseInt(productQuantity.value)  < 1 || parseInt(productQuantity) > 100) {
+            alert('Please select a valid quantity')
+        } else if (colorSelect.value === '') {
+            alert('Please choose a color')
+        } else {
     let product = {
         id: productId,
         quantity: parseInt(productQuantity.value), //convert the string into number
         color: colorSelect.value,
-        // image: productImg.src,
-        // name: productName.textContent,
-        // price: parseInt(productPrice.textContent),
     };
     addToCart(product);
-
-});
-
-    // addToCart();
-    
+    confirmation();
+    }
+    });
+    // Error handling if the request does not succeed
     } catch (error) {
-        console.log('Error during article request')
+        console.error(error);
+        alert('The product you were looking for can not be found. We are sorry!');
+        document.location.href = "index.html";
+         
     }
 };
 
-displayArticle();
+displayProduct();
 
-
-
+// Adding the product to the cart
 function addToCart(product) {
     //localStorage Initialization
     let cart = JSON.parse(localStorage.getItem('cart'));
@@ -99,38 +102,43 @@ function addToCart(product) {
     if (duplicate) {
        duplicate.quantity += product.quantity;
        localStorage.setItem('cart', JSON.stringify(cart));
+       cartCounter();
     //If there are no duplicates
     } else {
     cart.push(product);
     localStorage.setItem('cart', JSON.stringify(cart));
+    cartCounter();
     }
-
+    
+};
+// Counter for the quanity of produts in the cart
+function cartCounter() {
+    let productsQuantity = 0;
+    let cart = JSON.parse(localStorage.getItem('cart'));
+    if (cart == null) {
+        cart = [];
+    } else {
+    for (let product of cart) {
+        productsQuantity += product.quantity;
+    };
+    let productsCounter = document.querySelector('p.products-counter');
+    if (productsCounter == null) {
+        let productsCounter = document.createElement('p');
+        productsCounter.classList.add('products-counter')
+        let cartLink = document.querySelector('.cart__link');
+        cartLink.appendChild(productsCounter);
+        productsCounter.textContent = `${productsQuantity}`;
+    } else {
+    productsCounter.textContent = `${productsQuantity}`;}
+    }
 };
 
-//DA FARE: mettere l'if per quando il prodotto con lo stesso colore esiste
-
-//     let product = {
-//         id: productId,
-//         quantity: productQuantity.value,
-//         color: colorSelect.value,
-//     };
-//     console.log(product);
-//     //  localStorage.setItem('basket', '');
-//     //  let basket = localStorage.getItem('basket');
-     
-//     //  console.log(basket);
-
-//     addToCartBtn.addEventListener('click', ($event) => {
-    
-//     let cart = JSON.parse(localStorage.getItem('cart'));
-//     if (cart == null) {
-//         cart = [];
-//     }
-//     cart.push(product);
-//     localStorage.setItem('cart', JSON.stringify(cart));
-// } );
-
-// }
+function confirmation() {
+    if(window.confirm(`${productQuantity.value} ${productName.textContent} in ${colorSelect.value} has been added to the cart.
+    Click on OK to go to the cart`)) { 
+        window.location.href = 'cart.html';
+    }
+}
 
 
 
