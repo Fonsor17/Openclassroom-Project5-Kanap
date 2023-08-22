@@ -1,6 +1,5 @@
 //Getting access to the Dom where the articles are getting posted
 const displayedItems = document.getElementById('items');
-cartCounter();
 
 //Api's request for the articles
 function getArticles() {
@@ -42,7 +41,7 @@ async function displayArticles() {
 
 displayArticles();
 
-// Counter for the quanity of produts in the cart
+// Function to show the cart products counter.
 function cartCounter() {
     let productsQuantity = 0;
     let cart = JSON.parse(localStorage.getItem('cart'));
@@ -52,10 +51,33 @@ function cartCounter() {
     for (let product of cart) {
         productsQuantity += product.quantity;
     };
-    let productsCounter = document.createElement('p');
-    productsCounter.classList.add('products-counter')
-    let cartLink = document.querySelector('.cart__link');
-    cartLink.appendChild(productsCounter);
+    let productsCounter = document.querySelector('p.products-counter');
+    // if the counter doesn't exist, it's created
+    if (productsCounter == null) {
+        let productsCounter = document.createElement('p');
+        productsCounter.classList.add('products-counter');
+        productsCounter.style.color = 'var(--main-color)';
+        productsCounter.style.fontWeight = '500';
+        productsCounter.style.width = '20px';
+        productsCounter.style.borderRadius = '50%';
+        productsCounter.style.height = '20px';
+        productsCounter.style.alignSelf = 'center';
+        productsCounter.style.marginBottom = '35px';
+        productsCounter.style.textAlign = 'center';
+        productsCounter.style.lineHeight = 'normal';
+        let cartLink = document.querySelector('nav ul');
+        cartLink.appendChild(productsCounter);
+        productsCounter.textContent = `${productsQuantity}`;
+    } else {
+    // If the counter does exist, it gets updated
     productsCounter.textContent = `${productsQuantity}`;
-}
-}
+    }
+    // If there are no product the counter does not get shown
+    if (productsQuantity < 1) {
+       productsCounter = document.querySelector('p.products-counter');
+       productsCounter.remove();
+    }
+    }
+ };
+
+ cartCounter();

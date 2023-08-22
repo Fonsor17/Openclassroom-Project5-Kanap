@@ -2,8 +2,6 @@
 const urlSearch = window.location.search;
 const urlParams = new URLSearchParams(urlSearch);
 const productId = urlParams.get('id');
-// Counter for the quanity of produts in the cart
-cartCounter();
 // Constants to get the access to the DOM
 const productDivImg = document.querySelector('.item__img');
 const productName = document.getElementById('title');
@@ -49,10 +47,10 @@ async function displayProduct() {
     // Name Posting
     productName.textContent = displayedProduct.name;
     // Price Posting
-    productPrice.textContent = displayedProduct.price * productQuantity.value;
+    productPrice.textContent = ` ${displayedProduct.price}€ per unity (total : ${displayedProduct.price * productQuantity.value})`;
     // Price updating when quantity change
     productQuantity.addEventListener('change', ($event) => {
-        productPrice.textContent = displayedProduct.price * $event.target.value;
+        productPrice.textContent = ` ${displayedProduct.price}€ per unity (total : ${displayedProduct.price * $event.target.value})`
     });
     // Description Posting
     productDescription.textContent = displayedProduct.description;
@@ -63,8 +61,8 @@ async function displayProduct() {
         colorSelect.appendChild(colorOption);        
     });
     // Button to add to the Cart
-    addToCartBtn.addEventListener('click', ($event) => {
-        if (parseInt(productQuantity.value)  < 1 || parseInt(productQuantity) > 100) {
+    addToCartBtn.addEventListener('click', () => {
+        if (parseInt(productQuantity.value)  < 1 || parseInt(productQuantity.value) > 100) {
             alert('Please select a valid quantity')
         } else if (colorSelect.value === '') {
             alert('Please choose a color')
@@ -111,7 +109,15 @@ function addToCart(product) {
     }
     
 };
-// Counter for the quanity of produts in the cart
+
+function confirmation() {
+    if(window.confirm(`${productQuantity.value} ${productName.textContent} in ${colorSelect.value} has been added to the cart.
+    Click on OK to go to the cart`)) { 
+        window.location.href = 'cart.html';
+    }
+}
+
+// Function to show the cart products counter.
 function cartCounter() {
     let productsQuantity = 0;
     let cart = JSON.parse(localStorage.getItem('cart'));
@@ -122,23 +128,35 @@ function cartCounter() {
         productsQuantity += product.quantity;
     };
     let productsCounter = document.querySelector('p.products-counter');
+    // if the counter doesn't exist, it's created
     if (productsCounter == null) {
         let productsCounter = document.createElement('p');
-        productsCounter.classList.add('products-counter')
-        let cartLink = document.querySelector('.cart__link');
+        productsCounter.classList.add('products-counter');
+        productsCounter.style.color = 'var(--main-color)';
+        productsCounter.style.fontWeight = '500';
+        productsCounter.style.width = '20px';
+        productsCounter.style.borderRadius = '50%';
+        productsCounter.style.height = '20px';
+        productsCounter.style.alignSelf = 'center';
+        productsCounter.style.marginBottom = '35px';
+        productsCounter.style.textAlign = 'center';
+        productsCounter.style.lineHeight = 'normal';
+        let cartLink = document.querySelector('nav ul');
         cartLink.appendChild(productsCounter);
         productsCounter.textContent = `${productsQuantity}`;
     } else {
-    productsCounter.textContent = `${productsQuantity}`;}
+    // If the counter does exist, it gets updated
+    productsCounter.textContent = `${productsQuantity}`;
     }
-};
+    // If there are no product the counter does not get shown
+    if (productsQuantity < 1) {
+       productsCounter = document.querySelector('p.products-counter');
+       productsCounter.remove();
+    }
+    }
+ };
 
-function confirmation() {
-    if(window.confirm(`${productQuantity.value} ${productName.textContent} in ${colorSelect.value} has been added to the cart.
-    Click on OK to go to the cart`)) { 
-        window.location.href = 'cart.html';
-    }
-}
+cartCounter();
 
 
 
